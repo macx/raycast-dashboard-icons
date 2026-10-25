@@ -10,7 +10,9 @@ Only the maintainer of `macx/raycast-dashboard-icons` can release. `main` is pro
 
 ## 1. Verify ownership
 
-Run `./scripts/check-owner.sh`. If it fails, stop, show its message, and explain that contributors open pull requests instead. Do not edit, skip or work around the script. (It also requires a clean `main` in sync with `origin`.)
+If the current branch is not `main`: when the working tree is clean, tell the user and run `git switch main && git pull --rebase --autostash` (typical after a merged pull request); when it has uncommitted changes, stop and ask the user how to handle them.
+
+Then run `./scripts/check-owner.sh`. If it fails, stop, show its message, and explain that contributors open pull requests instead. Do not edit, skip or work around the script. (It also requires a clean `main` in sync with `origin`.)
 
 ## 2. Pull Store-side contributions
 
