@@ -1,21 +1,18 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { StreamableHTTPClientTransport, StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { FORMATS, IconDetails, IconLicense, IconUrls, SearchResult, Source, SOURCES } from "./types";
 
-/** Official dashboardicons.com MCP server (Streamable HTTP). */
-export const MCP_URL = "https://dashboardicons.com/api/mcp";
+/**
+ * Public endpoint of the official dashboardicons.com MCP server (Streamable HTTP).
+ * Unlike /api/mcp it needs no account and records no analytics, which suits a non-AI client like this extension.
+ */
+export const MCP_URL = "https://dashboardicons.com/api/mcp/public";
 
 const CLIENT_INFO = { name: "raycast-dashboard-icons", version: "1.0.0" };
 const REQUEST_TIMEOUT_MS = 15_000;
 
-// The server asks every tool call for a purpose description and the calling model, for its own analytics.
-// This extension is not an AI agent, so it sends a fixed, generic description and no model.
-const ANALYTICS = {
-  search_icons: "A Raycast extension user searches the icon catalog to find an icon for a dashboard or app directory.",
-  get_icon: "A Raycast extension user opens one icon to list its formats and variants and copy or save a file.",
-} as const;
-const LLM_MODEL = "none";
+type ToolName = "search_icons" | "get_icon";
 
 export class McpToolError extends Error {
   constructor(
@@ -25,6 +22,18 @@ export class McpToolError extends Error {
     super(message);
     this.name = "McpToolError";
   }
+}
+
+/** The server allows 30 tool calls per minute per IP and answers HTTP 429 beyond that. */
+export class RateLimitError extends Error {
+  constructor() {
+    super("Too many requests to dashboardicons.com. Please wait a minute and try again.");
+    this.name = "RateLimitError";
+  }
+}
+
+function isRateLimited(error: unknown): boolean {
+  return error instanceof StreamableHTTPError && error.code === 429;
 }
 
 export type GetIconResult = { found: true; icon: IconDetails } | { found: false; didYouMean: string[] };
@@ -170,24 +179,25 @@ export class DashboardIconsClient {
     if (connection) await (await connection).close().catch(() => undefined);
   }
 
-  private async callTool(name: keyof typeof ANALYTICS, args: JsonObject, signal?: AbortSignal): Promise<unknown> {
+  private async callTool(name: ToolName, args: JsonObject, signal?: AbortSignal): Promise<unknown> {
     const call = async () => {
       const client = await this.connect();
-      return client.callTool(
-        { name, arguments: { ...args, context: ANALYTICS[name], llm_model: LLM_MODEL } },
-        undefined,
-        { signal, timeout: REQUEST_TIMEOUT_MS },
-      );
+      return client.callTool({ name, arguments: args }, undefined, { signal, timeout: REQUEST_TIMEOUT_MS });
     };
 
     let result: unknown;
     try {
       result = await call();
     } catch (error) {
+      if (isRateLimited(error)) throw new RateLimitError();
       if (signal?.aborted) throw error;
       // A dropped session or connection is recovered once with a fresh connection.
       await this.close();
-      result = await call();
+      try {
+        result = await call();
+      } catch (retryError) {
+        throw isRateLimited(retryError) ? new RateLimitError() : retryError;
+      }
     }
     return toolPayload(name, result);
   }

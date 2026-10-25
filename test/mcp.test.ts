@@ -2,7 +2,16 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, CallToolResult, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { afterEach, describe, expect, it } from "vitest";
-import { DashboardIconsClient, McpToolError, parseSearchResults, toolPayload } from "../src/lib/mcp";
+import { StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
+import {
+  DashboardIconsClient,
+  MCP_URL,
+  McpToolError,
+  parseSearchResults,
+  RateLimitError,
+  toolPayload,
+} from "../src/lib/mcp";
 import { iconNotFound, iconPortabase, searchGithub, searchNtfy } from "./fixtures";
 
 type Call = { name: string; arguments: Record<string, unknown> };
@@ -40,7 +49,7 @@ afterEach(async () => {
 });
 
 describe("DashboardIconsClient.searchIcons", () => {
-  it("calls search_icons with query, limit and analytics fields", async () => {
+  it("calls search_icons with query and limit only", async () => {
     const { client, calls } = fakeServer(() => ok(searchNtfy));
     active = client;
     const results = await client.searchIcons("  ntfy ");
@@ -55,9 +64,7 @@ describe("DashboardIconsClient.searchIcons", () => {
     ]);
     expect(calls).toHaveLength(1);
     expect(calls[0].name).toBe("search_icons");
-    expect(calls[0].arguments).toMatchObject({ query: "ntfy", limit: 50, llm_model: "none" });
-    expect(typeof calls[0].arguments.context).toBe("string");
-    expect(calls[0].arguments).not.toHaveProperty("sources");
+    expect(calls[0].arguments).toEqual({ query: "ntfy", limit: 50 });
   });
 
   it("passes a source filter", async () => {
@@ -86,6 +93,27 @@ describe("DashboardIconsClient.searchIcons", () => {
     const { client } = fakeServer(() => ({ content: [{ type: "text", text: "Rate limited" }], isError: true }));
     active = client;
     await expect(client.searchIcons("ntfy")).rejects.toThrow(new McpToolError("search_icons", "Rate limited"));
+  });
+});
+
+describe("rate limiting", () => {
+  it("uses the public endpoint", () => {
+    expect(MCP_URL).toBe("https://dashboardicons.com/api/mcp/public");
+  });
+
+  it("reports HTTP 429 as RateLimitError without retrying", async () => {
+    let sends = 0;
+    const transport: Transport = {
+      async start() {},
+      async close() {},
+      async send() {
+        sends++;
+        throw new StreamableHTTPError(429, "Too Many Requests");
+      },
+    };
+    const client = new DashboardIconsClient(() => transport);
+    await expect(client.searchIcons("ntfy")).rejects.toBeInstanceOf(RateLimitError);
+    expect(sends).toBe(1);
   });
 });
 

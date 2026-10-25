@@ -2,7 +2,7 @@
 
 Search [dashboardicons.com](https://dashboardicons.com) from Raycast and copy or save icons for your homelab dashboard, app directory, or docs.
 
-The extension talks to the official [Dashboard Icons MCP server](https://dashboardicons.com/api/mcp), so search results, formats, and variants are exactly what the website offers. Next to the native Dashboard Icons catalog it can also search selfh.st, LobeHub, and Simple Icons. For those, the license and attribution are shown in the details.
+The extension talks to the public endpoint of the official Dashboard Icons MCP server (`https://dashboardicons.com/api/mcp/public`), so search results, formats, and variants are exactly what the website offers. The public endpoint needs no account and, according to the [Dashboard Icons privacy policy](https://dashboardicons.com/privacy), collects no analytics. No Raycast Pro or AI features are required. Next to the native Dashboard Icons catalog it can also search selfh.st, LobeHub, and Simple Icons. For those, the license and attribution are shown in the details.
 
 ## Usage
 
@@ -20,6 +20,8 @@ The extension talks to the official [Dashboard Icons MCP server](https://dashboa
 | Copy base icon directly from search | `⌘⇧Enter` |
 
 Light variants are meant for dark backgrounds, and Dark variants for light backgrounds.
+
+The server allows 30 searches or icon lookups per minute. If you hit the limit, wait a minute and try again.
 
 ## Preferences
 
