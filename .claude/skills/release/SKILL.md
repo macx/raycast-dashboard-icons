@@ -45,18 +45,37 @@ If the UI changed since the last release, ask whether `metadata/` needs new scre
 3. Summarize what will be published (version, changelog entry, commit, screenshot count) and ask for an explicit go. Publishing opens or updates a public pull request in `raycast/extensions`.
 4. Run `npm run publish`. It may ask the user to sign in with GitHub in the browser; tell them so. Report the pull request URL it prints.
 
-Fixes requested during Raycast's review belong to the same version: make them on a branch, merge through a pull request here, then run `npm run publish` again to update the same Raycast pull request.
+## 7. Pre-release
 
-## 7. After Raycast merges
-
-When the maintainer reports that Raycast merged the pull request, tag the commit that was published last and create the GitHub release:
+Right after publishing, mark progress on GitHub. The commit that was submitted is the target of the local tag `__raycast_latest_publish_ext/dashboard-icons__` that `npm run publish` maintains (`git rev-list -n1 "__raycast_latest_publish_ext/dashboard-icons__"`); never push that helper tag.
 
 ```bash
-git tag -a v<version> -m "v<version>" <commit>
+git tag -a v<version> -m "v<version>" <submitted commit>
 git push origin v<version>
-gh release create v<version> --title "v<version>" --notes "<changelog entry>
-
-Raycast Store: https://www.raycast.com/macx/dashboard-icons"
+gh release create v<version> --verify-tag --prerelease --title "v<version> (in Store review)" --notes-file <notes>
 ```
 
-Show the tag, commit and release notes to the user before pushing.
+The notes start with a short "In Raycast Store review" note linking the Raycast pull request, followed by the changelog entry. Show tag, commit and notes to the user before pushing.
+
+## 8. During Raycast's review
+
+Fixes requested by Raycast belong to the same version. Make them on a branch, merge through a pull request here, then run `npm run publish` again; it updates the same Raycast pull request. Afterwards move the tag to the new submitted commit and keep the pre-release:
+
+```bash
+git tag -fa v<version> -m "v<version>" <new submitted commit>
+git push --force origin v<version>
+```
+
+Moving the tag is acceptable only while the release is a pre-release. Tell the user when you do it.
+
+Batch small changes: unrelated improvements wait for the review result instead of being published into the open Raycast pull request one by one.
+
+## 9. After Raycast merges
+
+When the maintainer reports that Raycast merged the pull request, check that the tag points to the last submitted commit, then turn the pre-release into a release:
+
+```bash
+gh release edit v<version> --prerelease=false --latest --title "v<version>" --notes-file <notes>
+```
+
+The final notes are the changelog entry plus `Raycast Store: https://www.raycast.com/macx/dashboard-icons`, without the review note.
