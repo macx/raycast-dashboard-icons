@@ -22,6 +22,9 @@ identify the service this extension connects to.
 Icons shown by the extension
 ----------------------------
 Icons are loaded at runtime from dashboardicons.com and its CDNs and are not
-part of this repository. Logos and brand marks belong to their respective
+part of the extension. The only exception are the test fixtures in test/images
+(ntfy and portabase files), copied unchanged from
+https://github.com/homarr-labs/dashboard-icons under the Apache License 2.0
+to test image size detection. Logos and brand marks belong to their respective
 owners. Icons from external catalogs (selfh.st, LobeHub, Simple Icons) keep
 their own licenses, which the extension shows in the icon details.
