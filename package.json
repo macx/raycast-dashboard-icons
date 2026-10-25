@@ -22,6 +22,7 @@
     "webp"
   ],
   "license": "MIT",
+  "version": "1.0.0",
   "platforms": [
     "macOS"
   ],

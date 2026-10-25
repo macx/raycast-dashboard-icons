@@ -59,7 +59,11 @@ Keep `src/lib/*` free of `@raycast/api` imports so it stays unit-testable with V
 
 ## Contributing
 
-Work on a branch, run `npm run check`, open a pull request against `main` of https://github.com/macx/raycast-dashboard-icons. This repository is the source of truth; the Store copy in `raycast/extensions` is synced by the maintainer.
+`main` is protected: changes only through pull requests with passing CI. Work on a branch, run `npm run check`, open a pull request against `main` of https://github.com/macx/raycast-dashboard-icons. This repository is the source of truth; the Store copy in `raycast/extensions` is synced by the maintainer.
+
+## Versioning
+
+Semantic Versioning. The version is `version` in `package.json` and the title of each `CHANGELOG.md` entry (`## [1.0.1] - {PR_MERGE_DATE}`). Raycast's publishing docs do not use a version field; the Store shows the changelog as version history. Tags (`v1.0.1`) and GitHub releases are created after Raycast merges the Store pull request.
 
 ## Releasing (maintainer only)
 
@@ -67,5 +71,5 @@ Releases publish to the Raycast Store under the maintainer's account. Use the `/
 
 ## Project skills and agents
 
-- Skills (`.claude/skills`): `/validate` (full checks plus Store checklist), `/release` (maintainer only), `/screenshots` (Store screenshots with Raycast 2), `/icon-research` (inspect real data through the MCP server).
+- Skills (`.claude/skills`): `/validate` (full checks plus Store checklist), `/release` (maintainer only), `/screenshots` (Store screenshots with Raycast 2), `/icon-research` (inspect real data through the MCP server), `/pull-contributions` (bring Store-side changes from `raycast/extensions` into this repository through a pull request).
 - Agents (`.claude/agents`): `store-validator` (Store guidelines review), `e2e-tester` (live contract tests and a build of the real bundle), `security-reviewer` (untrusted server data, file writes, dependencies).
