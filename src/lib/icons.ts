@@ -94,3 +94,66 @@ export function primaryFile(icon: IconDetails, preferred: Format = "webp"): Icon
 export function availableFormats(icon: IconDetails): Format[] {
   return FORMATS.filter((format) => Object.keys(icon.urls[format] ?? {}).length > 0);
 }
+
+const GITHUB_LOGIN = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
+
+/** Display name as on dashboardicons.com: lowercase slugs like "home assistant" become "Home Assistant". */
+export function displayTitle(icon: Pick<IconDetails, "title">): string {
+  if (icon.title !== icon.title.toLowerCase()) return icon.title;
+  return icon.title.replace(
+    /(^|[\s-])(\p{L})/gu,
+    (_, separator: string, letter: string) => separator + letter.toUpperCase(),
+  );
+}
+
+/**
+ * Where to credit the icon's author. Native icons are contributed through GitHub, so their author is a
+ * GitHub login and links to the profile like on dashboardicons.com; external icons link to their catalog.
+ */
+export function authorUrl(icon: IconDetails): string | undefined {
+  if (!icon.author) return undefined;
+  if (icon.source === "native") {
+    return GITHUB_LOGIN.test(icon.author) ? `https://github.com/${icon.author}` : undefined;
+  }
+  return icon.license?.providerUrl || undefined;
+}
+
+/** Format of the base file, taken from the preview URL (the website calls this the "base format"). */
+export function baseFormat(icon: IconDetails): Format | undefined {
+  const match = icon.previewUrl.match(/\.(svg|png|webp)(?:$|[?#])/i);
+  return match ? (match[1].toLowerCase() as Format) : undefined;
+}
+
+/** The "About this icon" text of dashboardicons.com, built from the same data. */
+export function aboutIcon(icon: IconDetails): string[] {
+  const formats = (["svg", "png", "webp"] as const).filter((format) => availableFormats(icon).includes(format));
+  const variants = new Set(Object.values(icon.urls).flatMap((byVariant) => Object.keys(byVariant ?? {})));
+  const base = baseFormat(icon);
+
+  let summary =
+    formats.length > 1
+      ? `Available in ${formats.length} formats (${formats.map((format) => format.toUpperCase()).join(", ")})`
+      : `Available in ${formats[0]?.toUpperCase() ?? "no"} format`;
+  summary += base ? ` with a base format of ${base.toUpperCase()}.` : ".";
+  if (variants.has("light") || variants.has("dark")) {
+    summary += " Includes both light and dark theme variants for better integration with different UI designs.";
+  }
+  if ([...variants].some((variant) => variant.startsWith("wordmark"))) {
+    summary += " Wordmark variants are also available for enhanced branding options.";
+  }
+
+  const paragraphs = [
+    summary,
+    `Perfect for adding to dashboards, app directories, documentation, or anywhere you need the ${displayTitle(icon)} logo.`,
+  ];
+  if (icon.source !== "native") paragraphs.push(`External icon provided by ${SOURCE_LABELS[icon.source]}.`);
+  return paragraphs;
+}
+
+/** "24 August 2026" style date, or undefined for missing or invalid input. */
+export function formatDate(value: string | null): string | undefined {
+  if (!value) return undefined;
+  const date = new Date(value.replace(" ", "T"));
+  if (Number.isNaN(date.getTime())) return undefined;
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+}

@@ -3,11 +3,29 @@ import { useCachedPromise } from "@raycast/utils";
 import { useRef } from "react";
 import { preferences } from "../lib/actions";
 import { fetchImageSize } from "../lib/files";
-import { FORMAT_LABELS, groupIconFiles, SOURCE_LABELS } from "../lib/icons";
+import {
+  aboutIcon,
+  authorUrl,
+  displayTitle,
+  formatDate,
+  FORMAT_LABELS,
+  groupIconFiles,
+  SOURCE_LABELS,
+} from "../lib/icons";
 import { dashboardIcons } from "../lib/mcp";
 import { IconDetails, IconFile, Source, VariantGroup } from "../lib/types";
 import { FileActions } from "./FileActions";
 import { previewMarkdown } from "./preview";
+
+function AuthorRow({ icon }: { icon: IconDetails }) {
+  const url = authorUrl(icon);
+  const author = icon.author ?? "";
+  return url ? (
+    <List.Item.Detail.Metadata.Link title="Author" text={author} target={url} />
+  ) : (
+    <List.Item.Detail.Metadata.Label title="Author" text={author} />
+  );
+}
 
 function FileDetail({ icon, group, file }: { icon: IconDetails; group: VariantGroup; file: IconFile }) {
   const { data: size, isLoading } = useCachedPromise(fetchImageSize, [file.url], {
@@ -18,7 +36,13 @@ function FileDetail({ icon, group, file }: { icon: IconDetails; group: VariantGr
     <List.Item.Detail
       isLoading={isLoading}
       markdown={
-        isLoading ? "" : previewMarkdown(file, `${icon.title} ${group.label} ${FORMAT_LABELS[file.format]}`, size)
+        isLoading
+          ? ""
+          : [
+              previewMarkdown(file, `${icon.title} ${group.label} ${FORMAT_LABELS[file.format]}`, size),
+              "#### About This Icon",
+              ...aboutIcon(icon),
+            ].join("\n\n")
       }
       metadata={
         <List.Item.Detail.Metadata>
@@ -29,6 +53,7 @@ function FileDetail({ icon, group, file }: { icon: IconDetails; group: VariantGr
           <List.Item.Detail.Metadata.Label title="Format" text={FORMAT_LABELS[file.format]} />
           <List.Item.Detail.Metadata.Label title="File Name" text={file.fileName} />
           <List.Item.Detail.Metadata.Separator />
+          <List.Item.Detail.Metadata.Label title="Icon" text={displayTitle(icon)} />
           <List.Item.Detail.Metadata.Label title="Source" text={SOURCE_LABELS[icon.source]} />
           {icon.categories.length > 0 && (
             <List.Item.Detail.Metadata.TagList title="Categories">
@@ -40,7 +65,10 @@ function FileDetail({ icon, group, file }: { icon: IconDetails; group: VariantGr
           {icon.aliases.length > 0 && (
             <List.Item.Detail.Metadata.Label title="Aliases" text={icon.aliases.join(", ")} />
           )}
-          {icon.author && <List.Item.Detail.Metadata.Label title="Author" text={icon.author} />}
+          {icon.author && <AuthorRow icon={icon} />}
+          {formatDate(icon.updatedAt) && (
+            <List.Item.Detail.Metadata.Label title="Updated" text={formatDate(icon.updatedAt)} />
+          )}
           {icon.license && (
             <>
               <List.Item.Detail.Metadata.Separator />

@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  aboutIcon,
+  authorUrl,
   availableFormats,
+  displayTitle,
   fileNameFor,
+  formatDate,
   groupIconFiles,
   orderedFormats,
   primaryFile,
@@ -105,5 +109,50 @@ describe("primaryFile", () => {
   it("falls back to another format when the preferred one is missing", () => {
     expect(primaryFile(details(iconPngOnly), "svg")?.fileName).toBe("premium-mobile.webp");
     expect(primaryFile(details(iconSimpleIcons), "webp")?.fileName).toBe("brand.png");
+  });
+});
+
+describe("about this icon", () => {
+  it("matches the website text for portabase", () => {
+    expect(aboutIcon(details(iconPortabase))).toEqual([
+      "Available in 3 formats (SVG, PNG, WEBP) with a base format of SVG. Includes both light and dark theme variants for better integration with different UI designs. Wordmark variants are also available for enhanced branding options.",
+      "Perfect for adding to dashboards, app directories, documentation, or anywhere you need the Portabase logo.",
+    ]);
+  });
+
+  it("describes PNG-based icons without variants", () => {
+    expect(aboutIcon(details(iconPngOnly))[0]).toBe("Available in 2 formats (PNG, WEBP) with a base format of PNG.");
+    expect(displayTitle(details(iconPngOnly))).toBe("Premium Mobile");
+  });
+
+  it("names the external provider", () => {
+    const about = aboutIcon(details(iconSimpleIcons));
+    expect(about[0]).toBe(
+      "Available in 2 formats (SVG, PNG). Includes both light and dark theme variants for better integration with different UI designs.",
+    );
+    expect(about[2]).toBe("External icon provided by Simple Icons.");
+    expect(displayTitle(details(iconSimpleIcons))).toBe("GitHub Pages");
+  });
+});
+
+describe("author", () => {
+  it("links native authors to their GitHub profile", () => {
+    expect(authorUrl(details(iconPortabase))).toBe("https://github.com/Asuniia");
+  });
+
+  it("does not link names that are not GitHub logins", () => {
+    expect(authorUrl({ ...details(iconPortabase), author: "Théo LAGACHE" })).toBeUndefined();
+    expect(authorUrl({ ...details(iconPortabase), author: null })).toBeUndefined();
+  });
+
+  it("links external authors to their catalog", () => {
+    expect(authorUrl(details(iconSimpleIcons))).toBe("https://simpleicons.org/");
+  });
+
+  it("formats update dates like the website", () => {
+    expect(formatDate("2026-08-24T12:36:05.284Z")).toBe("24 August 2026");
+    expect(formatDate("2026-10-11 10:21:38.000Z")).toBe("11 October 2026");
+    expect(formatDate("nonsense")).toBeUndefined();
+    expect(formatDate(null)).toBeUndefined();
   });
 });
