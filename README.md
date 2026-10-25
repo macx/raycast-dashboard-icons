@@ -106,6 +106,7 @@ The repository ships a Claude Code setup: [CLAUDE.md](CLAUDE.md) explains the pr
 | `/validate` | Everyone | Runs all checks (lint, build, typecheck, unit and live tests) and reviews the Raycast Store checklist |
 | `/icon-research` | Everyone | Looks up real icon data (formats, variants, authors, licenses) through the MCP server |
 | `/screenshots` | Everyone | Explains how to take Store screenshots with Raycast 2 and files them into `metadata/` |
+| `/pull-contributions` | Maintainer | Brings changes others made to the Store copy in `raycast/extensions` into this repository through a pull request |
 | `/release` | Maintainer only | Verifies ownership, runs all checks, and publishes to the Raycast Store after confirmation |
 
 | Agent | What it does |
@@ -129,36 +130,38 @@ Releases to the Raycast Store are published by the maintainer with `npm run publ
 
 ## Releasing
 
-Raycast does not use the `version` field. A release is a pull request to [raycast/extensions](https://github.com/raycast/extensions) that Raycast reviews and merges; after the merge the update is published to the Store automatically.
+Versions follow [Semantic Versioning](https://semver.org): patch (`1.0.1`) for bug fixes, minor (`1.1.0`) for new features, major (`2.0.0`) for changes that break existing behavior. The version lives in `package.json` and is the title of each `CHANGELOG.md` entry, which the Store shows as the version history.
 
-1. **Update the changelog.** Add an entry at the top of [CHANGELOG.md](CHANGELOG.md). Use `{PR_MERGE_DATE}` as the date, Raycast replaces it on merge:
+A release is a pull request to [raycast/extensions](https://github.com/raycast/extensions) that Raycast reviews and merges; after the merge the update is published to the Store automatically. With Claude Code, the maintainer runs `/release`, which walks through these steps:
+
+1. **Pull Store-side contributions** (skip before the first release): `/pull-contributions`, or `npm run pull-contributions` on a branch, then merge the result through a pull request.
+2. **Bump the version and update the changelog** on a branch, merged through a pull request:
+
+   ```bash
+   npm version patch --no-git-tag-version   # or minor / major
+   ```
 
    ```markdown
-   ## [Short Title] - {PR_MERGE_DATE}
+   ## [1.0.1] - {PR_MERGE_DATE}
 
    - What changed, in plain words
    ```
 
-2. **Update screenshots if the UI changed.** Run `npm run dev`, open the command in Raycast, and use Raycast's **Window Capture** (`⌘⇧⌥M`) with **Save to Metadata** ticked. Screenshots go to `metadata/`: PNG, 2000 × 1250 px, at most six, ideally three or more, one consistent background, no personal data.
-3. **Pull Store-side contributions** (skip for the first release). If someone changed the extension directly in `raycast/extensions`, merge those changes first, otherwise publishing fails:
-
-   ```bash
-   npm run pull-contributions
-   ```
-
-4. **Commit and push** to `main` on GitHub and wait for CI to pass.
-5. **Release:**
+   Raycast replaces `{PR_MERGE_DATE}` with the merge date.
+3. **Update screenshots if the UI changed.** Run `npm run dev`, open the command, and use Raycast's built-in **Capture Window** command (assign a hotkey in Raycast Settings → Extensions) with **Save to Metadata**. Screenshots go to `metadata/`: PNG, 2000 × 1250 px, at most six, one theme and background, no personal data.
+4. **Release** from an up-to-date, clean `main`:
 
    ```bash
    npm run release
    ```
 
    This runs all checks (`npm run check`: lint, build, typecheck, unit and live tests) and then `npm run publish`, which asks you to sign in with GitHub and opens or updates the pull request in `raycast/extensions`.
-6. **Follow the review.** Answer reviewer comments in the pull request. To push fixes, commit them here and run `npm run publish` again; it updates the same pull request.
-7. **After the merge**, tag the release on GitHub:
+5. **Follow the review.** Fixes during the review go into the same version: merge them here, then run `npm run publish` again to update the same pull request.
+6. **After Raycast merges**, tag the published commit and create a GitHub release with the changelog entry:
 
    ```bash
-   git tag -a vYYYY.MM.DD -m "Release YYYY-MM-DD" && git push --tags
+   git tag -a v1.0.1 -m "v1.0.1" && git push origin v1.0.1
+   gh release create v1.0.1 --title "v1.0.1" --notes "<changelog entry>"
    ```
 
 ## License
