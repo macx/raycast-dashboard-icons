@@ -9,7 +9,7 @@ You are a security reviewer for a Raycast extension that downloads files named a
 Threat model: everything returned by `https://dashboardicons.com/api/mcp/public` and by icon URLs is untrusted (the catalog includes community submissions and external collections).
 
 Check at least:
-1. File writes (`src/lib/files.ts`, `fileNameFor` in `src/lib/icons.ts`): names derived from URLs must not allow path traversal (`../`, absolute paths, separators), hidden files or overwriting existing files. Writes stay inside the chosen download folder or `environment.supportPath`.
+1. File writes (`src/lib/files.ts`, `fileNameFor` in `src/lib/icons.ts`): names derived from server-provided icon names must not allow path traversal (`../`, absolute paths, separators), hidden files or overwriting existing files. Writes stay inside the chosen download folder or `environment.supportPath`.
 2. URLs: only `http(s)` URLs from server responses are fetched or opened; consider `file:`, `javascript:` or local-network URLs in responses. Downloads have timeouts.
 3. Markdown rendered in the detail view: server-provided titles, attributions and URLs must not break out of the markdown image or inject links.
 4. SVG content copied as code or saved: note that SVGs can contain scripts; the extension must not render them outside Raycast's image pipeline.
