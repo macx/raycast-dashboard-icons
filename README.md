@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="media/extension-icon.png" width="256" height="256" alt="Dashboard Icons extension icon">
+  <img src="assets/extension-icon.png" width="256" height="256" alt="Dashboard Icons extension icon">
 </p>
 
 <h1 align="center">Dashboard Icons for Raycast</h1>
@@ -97,6 +97,25 @@ npm run dev
 | `npm run build` | Distribution build, also generates `raycast-env.d.ts` |
 | `npm run typecheck` | TypeScript check (run `npm run build` once first) |
 
+### Working with Claude Code
+
+The repository ships a Claude Code setup: [CLAUDE.md](CLAUDE.md) explains the project, and `.mcp.json` connects Claude to the public Dashboard Icons MCP server for research.
+
+| Skill | Who | What it does |
+| --- | --- | --- |
+| `/validate` | Everyone | Runs all checks (lint, build, typecheck, unit and live tests) and reviews the Raycast Store checklist |
+| `/icon-research` | Everyone | Looks up real icon data (formats, variants, authors, licenses) through the MCP server |
+| `/screenshots` | Everyone | Explains how to take Store screenshots with Raycast 2 and files them into `metadata/` |
+| `/release` | Maintainer only | Verifies ownership, runs all checks, and publishes to the Raycast Store after confirmation |
+
+| Agent | What it does |
+| --- | --- |
+| `store-validator` | Reviews manifest, assets, screenshots, changelog and UI texts against the Store guidelines |
+| `e2e-tester` | Tests against the real MCP server and CDN files, checks the production bundle, and lists manual checks in Raycast |
+| `security-reviewer` | Reviews handling of untrusted server data, file writes, URLs and dependencies |
+
+`/release` only works for admins of this repository on a clean, up-to-date `main`; for everyone else it stops and suggests a pull request.
+
 ## Contributing
 
 Issues and pull requests are welcome **in this repository**, which is the source of truth. The Store version is built from a copy in [raycast/extensions](https://github.com/raycast/extensions); changes made there are merged back here before each release.
@@ -104,7 +123,7 @@ Issues and pull requests are welcome **in this repository**, which is the source
 1. Fork the repository and create a branch.
 2. Make your change and add or update tests.
 3. Run `npm run lint`, `npm run build`, and `npm test`.
-4. Open a pull request against `main`. CI runs the same checks.
+4. Open a pull request against `main`. CI runs the same checks and must pass; `main` accepts changes only through pull requests.
 
 Releases to the Raycast Store are published by the maintainer with `npm run publish`, which opens a pull request in [raycast/extensions](https://github.com/raycast/extensions).
 
