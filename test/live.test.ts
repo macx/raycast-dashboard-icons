@@ -30,6 +30,12 @@ describe.runIf(live)("dashboardicons.com MCP server", () => {
     expect(labels.slice(0, 3)).toEqual(["Base", "Light", "Dark"]);
   }, 30_000);
 
+  it("suggests portabase for the typo portbase", async () => {
+    const found = await client.findIcons("portbase");
+    expect(found.isSuggestion).toBe(true);
+    expect(found.results[0]).toMatchObject({ name: "portabase" });
+  }, 30_000);
+
   it("filters by source", async () => {
     const results = await client.searchIcons("github", { sources: ["simpleicons"], limit: 5 });
     expect(results.length).toBeGreaterThan(0);

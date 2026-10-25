@@ -2,21 +2,24 @@ import { Action, ActionPanel, Icon, List } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import { useRef } from "react";
 import { preferences } from "../lib/actions";
+import { fetchImageSize } from "../lib/files";
 import { FORMAT_LABELS, groupIconFiles, SOURCE_LABELS } from "../lib/icons";
 import { dashboardIcons } from "../lib/mcp";
 import { IconDetails, IconFile, Source, VariantGroup } from "../lib/types";
 import { FileActions } from "./FileActions";
-
-/** Markdown image with Raycast's size hint appended without breaking an existing query string. */
-export function previewMarkdown(file: IconFile, alt: string): string {
-  const separator = file.url.includes("?") ? "&" : "?";
-  return `![${alt.replace(/[[\]]/g, "")}](${file.url}${separator}raycast-height=190)`;
-}
+import { previewMarkdown } from "./preview";
 
 function FileDetail({ icon, group, file }: { icon: IconDetails; group: VariantGroup; file: IconFile }) {
+  const { data: size, isLoading } = useCachedPromise(fetchImageSize, [file.url], {
+    // Without a size the preview falls back to a square, so errors need no toast.
+    onError: () => undefined,
+  });
   return (
     <List.Item.Detail
-      markdown={previewMarkdown(file, `${icon.title} ${group.label} ${FORMAT_LABELS[file.format]}`)}
+      isLoading={isLoading}
+      markdown={
+        isLoading ? "" : previewMarkdown(file, `${icon.title} ${group.label} ${FORMAT_LABELS[file.format]}`, size)
+      }
       metadata={
         <List.Item.Detail.Metadata>
           <List.Item.Detail.Metadata.Label
@@ -87,7 +90,7 @@ export function IconDetail({ name, source, title }: { name: string; source: Sour
           title="No Files Found"
           description={
             !data.found && data.didYouMean.length > 0
-              ? `Did you mean: ${data.didYouMean.join(", ")}?`
+              ? `Did you mean: ${data.didYouMean.map((result) => result.title).join(", ")}?`
               : "This icon has no downloadable files."
           }
           actions={

@@ -134,4 +134,18 @@ export const iconSimpleIcons = {
   },
 };
 
-export const iconNotFound = { found: false, did_you_mean: ["ntfy"] };
+export const iconNotFound = {
+  found: false,
+  did_you_mean: [
+    { name: "portabase", title: "portabase", source: "native", preview_url: `${CDN}/svg/portabase.svg`, score: 1.56 },
+    {
+      name: "portabase",
+      title: "Portabase",
+      source: "selfhst",
+      preview_url: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/portabase.svg",
+      score: 1.56,
+    },
+  ],
+};
+
+export const searchEmpty = { results: [], total: 0 };

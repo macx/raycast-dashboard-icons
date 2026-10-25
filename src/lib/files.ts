@@ -1,6 +1,7 @@
 import { access, mkdir, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join, parse } from "node:path";
+import { imageSize, ImageSize } from "./image-size";
 import { IconFile } from "./types";
 
 const DOWNLOAD_TIMEOUT_MS = 30_000;
@@ -17,6 +18,11 @@ export async function downloadBytes(url: string): Promise<Buffer> {
 
 export async function downloadText(url: string): Promise<string> {
   return (await fetchOk(url)).text();
+}
+
+/** Intrinsic size of a remote PNG, WebP or SVG, or undefined when it cannot be read. */
+export async function fetchImageSize(url: string): Promise<ImageSize | undefined> {
+  return imageSize(new Uint8Array(await downloadBytes(url)));
 }
 
 export function expandHome(path: string): string {

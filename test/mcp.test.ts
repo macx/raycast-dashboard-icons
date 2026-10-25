@@ -12,7 +12,7 @@ import {
   RateLimitError,
   toolPayload,
 } from "../src/lib/mcp";
-import { iconNotFound, iconPortabase, searchGithub, searchNtfy } from "./fixtures";
+import { iconNotFound, iconPortabase, searchEmpty, searchGithub, searchNtfy } from "./fixtures";
 
 type Call = { name: string; arguments: Record<string, unknown> };
 type Handler = (call: Call) => CallToolResult;
@@ -138,7 +138,46 @@ describe("DashboardIconsClient.getIcon", () => {
   it("reports unknown icons with suggestions", async () => {
     const { client } = fakeServer(() => ok(iconNotFound));
     active = client;
-    expect(await client.getIcon("ntfyy")).toEqual({ found: false, didYouMean: ["ntfy"] });
+    const result = await client.getIcon("portbase");
+    if (result.found) throw new Error("expected not found");
+    expect(result.didYouMean.map((item) => `${item.source}:${item.name}`)).toEqual([
+      "native:portabase",
+      "selfhst:portabase",
+    ]);
+  });
+});
+
+describe("DashboardIconsClient.findIcons", () => {
+  it("returns search results without a fallback call", async () => {
+    const { client, calls } = fakeServer(() => ok(searchNtfy));
+    active = client;
+    const found = await client.findIcons("ntfy");
+    expect(found.isSuggestion).toBe(false);
+    expect(found.results).toHaveLength(1);
+    expect(calls.map((call) => call.name)).toEqual(["search_icons"]);
+  });
+
+  it("falls back to did-you-mean suggestions for typos", async () => {
+    const { client, calls } = fakeServer((call) => ok(call.name === "search_icons" ? searchEmpty : iconNotFound));
+    active = client;
+    const found = await client.findIcons("portbase");
+    expect(found.isSuggestion).toBe(true);
+    expect(found.results.map((item) => item.name)).toEqual(["portabase", "portabase"]);
+    expect(calls[1]).toMatchObject({ name: "get_icon", arguments: { name: "portbase" } });
+  });
+
+  it("keeps the source filter for suggestions", async () => {
+    const { client } = fakeServer((call) => ok(call.name === "search_icons" ? searchEmpty : iconNotFound));
+    active = client;
+    const found = await client.findIcons("portbase", { sources: ["selfhst"] });
+    expect(found.results.map((item) => item.source)).toEqual(["selfhst"]);
+  });
+
+  it("uses a loosely resolved icon as suggestion", async () => {
+    const { client } = fakeServer((call) => ok(call.name === "search_icons" ? searchEmpty : iconPortabase));
+    active = client;
+    const found = await client.findIcons("Porta Base");
+    expect(found).toMatchObject({ isSuggestion: true, results: [{ name: "portabase", source: "native" }] });
   });
 });
 

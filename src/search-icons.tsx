@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { IconDetail } from "./components/IconDetail";
 import { copyIconFile, preferences } from "./lib/actions";
 import { FORMAT_LABELS, primaryFile, SOURCE_LABELS } from "./lib/icons";
-import { dashboardIcons } from "./lib/mcp";
+import { dashboardIcons, FindResult } from "./lib/mcp";
 import { SearchResult, Source, SOURCES } from "./lib/types";
 
 type SourceFilter = "all" | Source;
@@ -49,7 +49,7 @@ export default function Command(props: LaunchProps<{ arguments: Arguments.Search
 
   const { data, isLoading } = useCachedPromise(
     (query: string, filter: SourceFilter) =>
-      dashboardIcons.searchIcons(query, {
+      dashboardIcons.findIcons(query, {
         sources: filter === "all" ? undefined : [filter],
         signal: abortable.current?.signal,
       }),
@@ -63,7 +63,7 @@ export default function Command(props: LaunchProps<{ arguments: Arguments.Search
   );
 
   const query = searchText.trim();
-  const results = query ? (data ?? []) : [];
+  const found: FindResult = query && data ? data : { results: [], isSuggestion: false };
 
   return (
     <Grid
@@ -99,42 +99,44 @@ export default function Command(props: LaunchProps<{ arguments: Arguments.Search
           />
         )
       )}
-      {results.map((result) => (
-        <Grid.Item
-          key={`${result.source}:${result.name}`}
-          content={{ value: { source: result.previewUrl }, tooltip: result.title }}
-          title={result.title}
-          subtitle={result.source === "native" ? undefined : SOURCE_LABELS[result.source]}
-          actions={
-            <ActionPanel title={result.title}>
-              <Action.Push
-                title="Show Formats and Variants"
-                icon={Icon.AppWindowList}
-                target={<IconDetail name={result.name} source={result.source} title={result.title} />}
-              />
-              <Action
-                title={`Copy Base ${FORMAT_LABELS[defaultFormat]} File`}
-                icon={Icon.Clipboard}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "enter" }}
-                onAction={() => quickCopy(result)}
-              />
-              <Action.OpenInBrowser
-                title="Open Icon Page"
-                url={
-                  result.source === "native"
-                    ? `https://dashboardicons.com/icons/${result.name}`
-                    : `https://dashboardicons.com/icons/external/${result.source}/${result.name}`
-                }
-              />
-              <Action.CopyToClipboard
-                title="Copy Icon Name"
-                content={result.name}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "n" }}
-              />
-            </ActionPanel>
-          }
-        />
-      ))}
+      <Grid.Section title={found.isSuggestion ? "Did You Mean" : undefined}>
+        {found.results.map((result) => (
+          <Grid.Item
+            key={`${result.source}:${result.name}`}
+            content={{ value: { source: result.previewUrl }, tooltip: result.title }}
+            title={result.title}
+            subtitle={result.source === "native" ? undefined : SOURCE_LABELS[result.source]}
+            actions={
+              <ActionPanel title={result.title}>
+                <Action.Push
+                  title="Show Formats and Variants"
+                  icon={Icon.AppWindowList}
+                  target={<IconDetail name={result.name} source={result.source} title={result.title} />}
+                />
+                <Action
+                  title={`Copy Base ${FORMAT_LABELS[defaultFormat]} File`}
+                  icon={Icon.Clipboard}
+                  shortcut={{ modifiers: ["cmd", "shift"], key: "enter" }}
+                  onAction={() => quickCopy(result)}
+                />
+                <Action.OpenInBrowser
+                  title="Open Icon Page"
+                  url={
+                    result.source === "native"
+                      ? `https://dashboardicons.com/icons/${result.name}`
+                      : `https://dashboardicons.com/icons/external/${result.source}/${result.name}`
+                  }
+                />
+                <Action.CopyToClipboard
+                  title="Copy Icon Name"
+                  content={result.name}
+                  shortcut={{ modifiers: ["cmd", "shift"], key: "n" }}
+                />
+              </ActionPanel>
+            }
+          />
+        ))}
+      </Grid.Section>
     </Grid>
   );
 }

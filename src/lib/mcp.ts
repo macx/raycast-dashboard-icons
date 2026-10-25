@@ -36,7 +36,13 @@ function isRateLimited(error: unknown): boolean {
   return error instanceof StreamableHTTPError && error.code === 429;
 }
 
-export type GetIconResult = { found: true; icon: IconDetails } | { found: false; didYouMean: string[] };
+export type GetIconResult = { found: true; icon: IconDetails } | { found: false; didYouMean: SearchResult[] };
+
+/** Search results, or the server's "did you mean" suggestions when the search found nothing (e.g. typos). */
+export interface FindResult {
+  results: SearchResult[];
+  isSuggestion: boolean;
+}
 
 export interface SearchOptions {
   sources?: Source[];
@@ -102,7 +108,7 @@ function parseUrls(value: unknown): IconUrls {
 
 export function parseGetIcon(content: unknown): GetIconResult {
   if (!isObject(content) || content.found !== true || !isObject(content.icon)) {
-    return { found: false, didYouMean: isObject(content) ? strings(content.did_you_mean) : [] };
+    return { found: false, didYouMean: isObject(content) ? parseSearchResults({ results: content.did_you_mean }) : [] };
   }
   const icon = content.icon;
   const name = str(icon.name);
@@ -208,6 +214,32 @@ export class DashboardIconsClient {
     const args: JsonObject = { query: trimmed, limit: options.limit ?? 50 };
     if (options.sources && options.sources.length > 0) args.sources = options.sources;
     return parseSearchResults(await this.callTool("search_icons", args, options.signal));
+  }
+
+  /**
+   * Searches like searchIcons. When nothing matches, asks get_icon, which resolves loose names and
+   * answers unknown ones with suggestions, so "portbase" still leads to "portabase".
+   */
+  async findIcons(query: string, options: SearchOptions = {}): Promise<FindResult> {
+    const results = await this.searchIcons(query, options);
+    if (results.length > 0 || !query.trim()) return { results, isSuggestion: false };
+
+    const lookup = await this.getIcon(query.trim().slice(0, 80), undefined, options.signal);
+    const suggestions = lookup.found
+      ? [
+          {
+            name: lookup.icon.name,
+            title: lookup.icon.title,
+            source: lookup.icon.source,
+            previewUrl: lookup.icon.previewUrl,
+          },
+        ]
+      : lookup.didYouMean;
+    const allowed = options.sources && options.sources.length > 0 ? options.sources : undefined;
+    return {
+      results: suggestions.filter((result) => !allowed || allowed.includes(result.source)),
+      isSuggestion: true,
+    };
   }
 
   async getIcon(name: string, iconSource?: Source, signal?: AbortSignal): Promise<GetIconResult> {
