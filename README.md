@@ -76,7 +76,7 @@ npm run dev
 
 ## Contributing
 
-Issues and pull requests are welcome.
+Issues and pull requests are welcome **in this repository**, which is the source of truth. The Store version is built from a copy in [raycast/extensions](https://github.com/raycast/extensions); changes made there are merged back here before each release.
 
 1. Fork the repository and create a branch.
 2. Make your change and add or update tests.
@@ -84,6 +84,40 @@ Issues and pull requests are welcome.
 4. Open a pull request against `main`. CI runs the same checks.
 
 Releases to the Raycast Store are published by the maintainer with `npm run publish`, which opens a pull request in [raycast/extensions](https://github.com/raycast/extensions).
+
+## Releasing
+
+Raycast does not use the `version` field. A release is a pull request to [raycast/extensions](https://github.com/raycast/extensions) that Raycast reviews and merges; after the merge the update is published to the Store automatically.
+
+1. **Update the changelog.** Add an entry at the top of [CHANGELOG.md](CHANGELOG.md). Use `{PR_MERGE_DATE}` as the date, Raycast replaces it on merge:
+
+   ```markdown
+   ## [Short Title] - {PR_MERGE_DATE}
+
+   - What changed, in plain words
+   ```
+
+2. **Update screenshots if the UI changed.** Run `npm run dev`, open the command in Raycast, and use Raycast's **Window Capture** (`⌘⇧⌥M`) with **Save to Metadata** ticked. Screenshots go to `metadata/`: PNG, 2000 × 1250 px, at most six, ideally three or more, one consistent background, no personal data.
+3. **Pull Store-side contributions** (skip for the first release). If someone changed the extension directly in `raycast/extensions`, merge those changes first, otherwise publishing fails:
+
+   ```bash
+   npm run pull-contributions
+   ```
+
+4. **Commit and push** to `main` on GitHub and wait for CI to pass.
+5. **Release:**
+
+   ```bash
+   npm run release
+   ```
+
+   This runs all checks (`npm run check`: lint, build, typecheck, unit and live tests) and then `npm run publish`, which asks you to sign in with GitHub and opens or updates the pull request in `raycast/extensions`.
+6. **Follow the review.** Answer reviewer comments in the pull request. To push fixes, commit them here and run `npm run publish` again; it updates the same pull request.
+7. **After the merge**, tag the release on GitHub:
+
+   ```bash
+   git tag -a vYYYY.MM.DD -m "Release YYYY-MM-DD" && git push --tags
+   ```
 
 ## License
 
