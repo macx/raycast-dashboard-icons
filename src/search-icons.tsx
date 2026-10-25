@@ -1,13 +1,25 @@
 import { Action, ActionPanel, Grid, Icon, LaunchProps } from "@raycast/api";
 import { showFailureToast, useCachedPromise } from "@raycast/utils";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IconDetail } from "./components/IconDetail";
 import { copyIconFile, preferences } from "./lib/actions";
 import { FORMAT_LABELS, primaryFile, SOURCE_LABELS } from "./lib/icons";
-import { dashboardIcons, FindResult } from "./lib/mcp";
+import { dashboardIcons, FindResult, MIN_QUERY_LENGTH } from "./lib/mcp";
 import { SearchResult, Source, SOURCES } from "./lib/types";
 
 type SourceFilter = "all" | Source;
+
+/** Pause after the last keystroke before searching, to keep requests within the server's rate limit. */
+const SEARCH_DEBOUNCE_MS = 400;
+
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timeout);
+  }, [value, delay]);
+  return debounced;
+}
 
 function isSourceFilter(value: string): value is SourceFilter {
   return value === "all" || SOURCES.includes(value as Source);
@@ -46,6 +58,9 @@ export default function Command(props: LaunchProps<{ arguments: Arguments.Search
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
   const { defaultFormat } = preferences();
   const abortable = useRef<AbortController>(null);
+  const query = searchText.trim();
+  const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
+  const canSearch = debouncedQuery.length >= MIN_QUERY_LENGTH;
 
   const { data, isLoading } = useCachedPromise(
     (query: string, filter: SourceFilter) =>
@@ -53,37 +68,37 @@ export default function Command(props: LaunchProps<{ arguments: Arguments.Search
         sources: filter === "all" ? undefined : [filter],
         signal: abortable.current?.signal,
       }),
-    [searchText, sourceFilter],
+    [debouncedQuery, sourceFilter],
     {
       abortable,
-      execute: searchText.trim().length > 0,
+      execute: canSearch,
       keepPreviousData: true,
       failureToastOptions: { title: "Search failed" },
     },
   );
 
-  const query = searchText.trim();
-  const found: FindResult = query && data ? data : { results: [], isSuggestion: false };
+  const isWaiting = query !== debouncedQuery;
+  const found: FindResult = canSearch && data ? data : { results: [], isSuggestion: false };
 
   return (
     <Grid
       columns={6}
       inset={Grid.Inset.Medium}
-      isLoading={isLoading}
+      isLoading={isLoading || (isWaiting && query.length >= MIN_QUERY_LENGTH)}
       searchText={searchText}
       onSearchTextChange={setSearchText}
-      throttle
       searchBarPlaceholder="Search icons, e.g. ntfy, Jellyfin, Home Assistant"
       searchBarAccessory={<SourceDropdown onChange={setSourceFilter} />}
     >
-      {!query ? (
+      {query.length < MIN_QUERY_LENGTH ? (
         <Grid.EmptyView
           icon="extension-icon.png"
           title="Search Dashboard Icons"
           description="Type an app or service name to find its icon."
         />
       ) : (
-        !isLoading && (
+        !isLoading &&
+        !isWaiting && (
           <Grid.EmptyView
             icon={Icon.MagnifyingGlass}
             title="No Icons Found"

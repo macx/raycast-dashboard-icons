@@ -12,6 +12,7 @@ import {
   RateLimitError,
   toolPayload,
 } from "../src/lib/mcp";
+import { RequestBudget } from "../src/lib/rate-limit";
 import { iconNotFound, iconPortabase, searchEmpty, searchGithub, searchNtfy } from "./fixtures";
 
 type Call = { name: string; arguments: Record<string, unknown> };
@@ -74,10 +75,11 @@ describe("DashboardIconsClient.searchIcons", () => {
     expect(calls[0].arguments).toMatchObject({ sources: ["selfhst"], limit: 10 });
   });
 
-  it("does not call the server for an empty query", async () => {
+  it("does not call the server for empty or one-character queries", async () => {
     const { client, calls } = fakeServer(() => ok(searchNtfy));
     active = client;
     expect(await client.searchIcons("   ")).toEqual([]);
+    expect(await client.searchIcons(" n ")).toEqual([]);
     expect(calls).toHaveLength(0);
   });
 
@@ -114,6 +116,37 @@ describe("rate limiting", () => {
     const client = new DashboardIconsClient(() => transport);
     await expect(client.searchIcons("ntfy")).rejects.toBeInstanceOf(RateLimitError);
     expect(sends).toBe(1);
+  });
+});
+
+describe("local request budget", () => {
+  it("stops sending requests once the budget is used up", async () => {
+    let now = 0;
+    const handler = () => ok(searchNtfy);
+    const calls: Call[] = [];
+    const client = new DashboardIconsClient(
+      () => {
+        const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+        const server = new Server({ name: "fake", version: "0.0.0" }, { capabilities: { tools: {} } });
+        server.setRequestHandler(CallToolRequestSchema, async (request) => {
+          calls.push({ name: request.params.name, arguments: request.params.arguments ?? {} });
+          return handler();
+        });
+        void server.connect(serverTransport);
+        return clientTransport;
+      },
+      new RequestBudget(2, 60_000, () => now),
+    );
+    active = client;
+
+    await client.searchIcons("ntfy");
+    await client.searchIcons("plex");
+    await expect(client.searchIcons("jellyfin")).rejects.toBeInstanceOf(RateLimitError);
+    expect(calls).toHaveLength(2);
+
+    now = 60_000;
+    await client.searchIcons("jellyfin");
+    expect(calls).toHaveLength(3);
   });
 });
 
@@ -164,6 +197,13 @@ describe("DashboardIconsClient.findIcons", () => {
     expect(found.isSuggestion).toBe(true);
     expect(found.results.map((item) => item.name)).toEqual(["portabase", "portabase"]);
     expect(calls[1]).toMatchObject({ name: "get_icon", arguments: { name: "portbase" } });
+  });
+
+  it("skips suggestions for short queries", async () => {
+    const { client, calls } = fakeServer((call) => ok(call.name === "search_icons" ? searchEmpty : iconNotFound));
+    active = client;
+    expect(await client.findIcons("pot")).toEqual({ results: [], isSuggestion: false });
+    expect(calls.map((call) => call.name)).toEqual(["search_icons"]);
   });
 
   it("keeps the source filter for suggestions", async () => {

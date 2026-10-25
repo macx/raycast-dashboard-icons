@@ -1,6 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport, StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
+import { RequestBudget } from "./rate-limit";
 import { FORMATS, IconDetails, IconLicense, IconUrls, SearchResult, Source, SOURCES } from "./types";
 
 /**
@@ -11,6 +12,15 @@ export const MCP_URL = "https://dashboardicons.com/api/mcp/public";
 
 const CLIENT_INFO = { name: "raycast-dashboard-icons", version: "1.0.0" };
 const REQUEST_TIMEOUT_MS = 15_000;
+
+/** Tool calls per minute this client allows itself, below the server's limit of 30. */
+const TOOL_CALLS_PER_MINUTE = 25;
+
+/** Searches shorter than this are not sent to the server. */
+export const MIN_QUERY_LENGTH = 2;
+
+/** Did-you-mean suggestions cost a second request, so they are only fetched for queries this long. */
+export const SUGGESTION_MIN_LENGTH = 4;
 
 type ToolName = "search_icons" | "get_icon";
 
@@ -163,6 +173,7 @@ export class DashboardIconsClient {
 
   constructor(
     private readonly createTransport: () => Transport = () => new StreamableHTTPClientTransport(new URL(MCP_URL)),
+    private readonly budget = new RequestBudget(TOOL_CALLS_PER_MINUTE, 60_000),
   ) {}
 
   private connect(): Promise<Client> {
@@ -187,6 +198,7 @@ export class DashboardIconsClient {
 
   private async callTool(name: ToolName, args: JsonObject, signal?: AbortSignal): Promise<unknown> {
     const call = async () => {
+      if (!this.budget.take()) throw new RateLimitError();
       const client = await this.connect();
       return client.callTool({ name, arguments: args }, undefined, { signal, timeout: REQUEST_TIMEOUT_MS });
     };
@@ -195,6 +207,7 @@ export class DashboardIconsClient {
     try {
       result = await call();
     } catch (error) {
+      if (error instanceof RateLimitError) throw error;
       if (isRateLimited(error)) throw new RateLimitError();
       if (signal?.aborted) throw error;
       // A dropped session or connection is recovered once with a fresh connection.
@@ -210,7 +223,7 @@ export class DashboardIconsClient {
 
   async searchIcons(query: string, options: SearchOptions = {}): Promise<SearchResult[]> {
     const trimmed = query.trim().slice(0, 100);
-    if (!trimmed) return [];
+    if (trimmed.length < MIN_QUERY_LENGTH) return [];
     const args: JsonObject = { query: trimmed, limit: options.limit ?? 50 };
     if (options.sources && options.sources.length > 0) args.sources = options.sources;
     return parseSearchResults(await this.callTool("search_icons", args, options.signal));
@@ -218,11 +231,12 @@ export class DashboardIconsClient {
 
   /**
    * Searches like searchIcons. When nothing matches, asks get_icon, which resolves loose names and
-   * answers unknown ones with suggestions, so "portbase" still leads to "portabase".
+   * answers unknown ones with suggestions, so "portbase" still leads to "portabase". Short queries skip
+   * the second request.
    */
   async findIcons(query: string, options: SearchOptions = {}): Promise<FindResult> {
     const results = await this.searchIcons(query, options);
-    if (results.length > 0 || !query.trim()) return { results, isSuggestion: false };
+    if (results.length > 0 || query.trim().length < SUGGESTION_MIN_LENGTH) return { results, isSuggestion: false };
 
     const lookup = await this.getIcon(query.trim().slice(0, 80), undefined, options.signal);
     const suggestions = lookup.found

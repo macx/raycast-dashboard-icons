@@ -45,7 +45,7 @@ Tip: Give the command an alias such as `icons` in Raycast Settings → Extension
 
 Light variants are meant for dark backgrounds, and Dark variants for light backgrounds.
 
-The server allows 30 searches or icon lookups per minute. If you hit the limit, wait a minute and try again.
+The server allows 30 searches or icon lookups per minute per internet connection. To stay well below that, the extension searches only after a short typing pause (400 ms) and from two characters on, fetches "Did You Mean" suggestions only for queries of four or more characters, caches results, and sends at most 25 requests per minute. If you still hit the limit, wait a minute and try again.
 
 ### Preferences
 
