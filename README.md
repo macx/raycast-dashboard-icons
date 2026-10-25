@@ -20,7 +20,7 @@
 <table>
   <tr>
     <td width="33%" align="center">
-      <a href="metadata/dashboard-icons-2-variants.png"><img src="metadata/dashboard-icons-2-variants.png" alt="Base, Light and Dark variants of Portabase with preview, author and categories"></a><br>
+      <a href="metadata/dashboard-icons-2-variants.png"><img src="metadata/dashboard-icons-2-variants.png" alt="Base, Light and Dark variants of Proxmox with preview, author and update date"></a><br>
       <sub>Every variant and format with preview</sub>
     </td>
     <td width="33%" align="center">
