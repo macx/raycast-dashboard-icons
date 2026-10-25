@@ -6,8 +6,8 @@ affiliated with, or endorsed by Homarr Labs or the Dashboard Icons project.
 
 Extension icon
 --------------
-assets/extension-icon.png, assets/extension-icon@dark.png and
-media/extension-icon.png are the Dashboard Icons logo, rendered to PNG with
+assets/extension-icon.png and assets/extension-icon@dark.png are the
+Dashboard Icons logo, rendered to PNG with
 added padding from web/public/favicon.svg in
 https://github.com/homarr-labs/dashboard-icons.
 
