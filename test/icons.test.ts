@@ -64,6 +64,12 @@ describe("fileNameFor", () => {
   it("sanitizes unsafe characters", () => {
     expect(fileNameFor("a/b c", "default", "svg", "not a url")).toBe("a-b-c.svg");
   });
+
+  it("never produces hidden or relative file names", () => {
+    expect(fileNameFor("x", "default", "svg", "https://cdn.example.com/%2e%2e%2f%2e%2e%2fevil.svg")).toBe("evil.svg");
+    expect(fileNameFor("x", "default", "svg", "https://cdn.example.com/.hidden.svg")).toBe("hidden.svg");
+    expect(fileNameFor("..", "default", "png", "https://cdn.example.com/a")).toBe("icon.png");
+  });
 });
 
 describe("groupIconFiles", () => {

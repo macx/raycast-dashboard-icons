@@ -11,6 +11,12 @@
 > [!NOTE]
 > This is an independent, unofficial extension. It is not made by, affiliated with, or endorsed by Homarr Labs or the Dashboard Icons project. The extension icon is the Dashboard Icons logo, used under the Apache License 2.0 to identify the service. All rights to the Dashboard Icons name and logo remain with their owners. See [NOTICE](NOTICE).
 
+## Screenshots
+
+<p align="center">
+  <img src="metadata/dashboard-icons-1.png" width="720" alt="Search results for “home” in Raycast">
+</p>
+
 ## Features
 
 - Search the Dashboard Icons catalog, and optionally selfh.st, LobeHub, and Simple Icons.

@@ -43,7 +43,8 @@ export function orderedFormats(preferred: Format): Format[] {
 }
 
 function sanitizeFileName(value: string): string {
-  return value.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") || "icon";
+  // Separators become dashes; leading dots and dashes are dropped so a name can never be hidden or relative.
+  return value.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^[.-]+|-+$/g, "") || "icon";
 }
 
 /**
