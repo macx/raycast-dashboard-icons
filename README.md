@@ -14,21 +14,21 @@
 ## Screenshots
 
 <p align="center">
-  <img src="metadata/dashboard-icons-1.png" width="720" alt="Search results for “home” in Raycast">
+  <img src="metadata/dashboard-icons-1-search.png" width="720" alt="Search results for “home” in Raycast">
 </p>
 
 <table>
   <tr>
     <td width="33%" align="center">
-      <a href="metadata/dashboard-icons-2.png"><img src="metadata/dashboard-icons-2.png" alt="Base, Light and Dark variants of Portabase with preview, author and categories"></a><br>
+      <a href="metadata/dashboard-icons-2-variants.png"><img src="metadata/dashboard-icons-2-variants.png" alt="Base, Light and Dark variants of Portabase with preview, author and categories"></a><br>
       <sub>Every variant and format with preview</sub>
     </td>
     <td width="33%" align="center">
-      <a href="metadata/dashboard-icons-3.png"><img src="metadata/dashboard-icons-3.png" alt="Actions to copy or save the file, copy its URL, or open the icon page"></a><br>
+      <a href="metadata/dashboard-icons-3-actions.png"><img src="metadata/dashboard-icons-3-actions.png" alt="Actions to copy or save the file, copy its URL, or open the icon page"></a><br>
       <sub>Copy, save, or open in the browser</sub>
     </td>
     <td width="33%" align="center">
-      <a href="metadata/dashboard-icons-4.png"><img src="metadata/dashboard-icons-4.png" alt="Search for “git” with the source filter open"></a><br>
+      <a href="metadata/dashboard-icons-4-sources.png"><img src="metadata/dashboard-icons-4-sources.png" alt="Search for “git” with the source filter open"></a><br>
       <sub>Filter by icon source</sub>
     </td>
   </tr>

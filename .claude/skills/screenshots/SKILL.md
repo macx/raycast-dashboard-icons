@@ -26,6 +26,6 @@ If CleanShot X is installed, Raycast may hand the capture to CleanShot, and the 
 
 1. Find new captures: files in `metadata/`, or recent `Raycast *.png` files in the CleanShot folder. Ask before copying files from outside the repository.
 2. Check each one is a 2000 × 1250 PNG (`sips -g pixelWidth -g pixelHeight <file>`) and look at it for personal data or other apps.
-3. Copy them into `metadata/` as `dashboard-icons-1.png`, `dashboard-icons-2.png`, … in the order above. At most six.
+3. Copy them into `metadata/` as `dashboard-icons-<n>-<subject>.png` in the order above, for example `dashboard-icons-1-search.png`, `dashboard-icons-2-variants.png`, `dashboard-icons-3-actions.png`, `dashboard-icons-4-sources.png`. The number keeps the Store order; the subject says what it shows. At most six.
 4. Keep the README gallery (section "Screenshots") in sync with the files.
 5. Run `npm run lint` (validates metadata) and commit.
