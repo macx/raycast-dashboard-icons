@@ -44,6 +44,7 @@ If the UI changed since the last release, ask whether `metadata/` needs new scre
 2. Run `npm run check`. Every step must pass, including the live tests.
 3. Summarize what will be published (version, changelog entry, commit, screenshot count) and ask for an explicit go. Publishing opens or updates a public pull request in `raycast/extensions`.
 4. Run `npm run publish`. It may ask the user to sign in with GitHub in the browser; tell them so. Report the pull request URL it prints.
+5. `npm run publish` can open the Raycast pull request as a draft, and Raycast does not review drafts (the bot marks them stale and closes them). Check with `gh pr view <number> -R raycast/extensions --json isDraft`; if it is a draft, run `gh pr ready <number> -R raycast/extensions` and confirm `isDraft` is now `false`. Do the same after every later `npm run publish` in step 8.
 
 ## 7. Pre-release
 
@@ -59,7 +60,7 @@ The notes start with a short "In Raycast Store review" note linking the Raycast 
 
 ## 8. During Raycast's review
 
-Fixes requested by Raycast belong to the same version. Make them on a branch, merge through a pull request here, then run `npm run publish` again; it updates the same Raycast pull request. Afterwards move the tag to the new submitted commit and keep the pre-release:
+Fixes requested by Raycast belong to the same version. Make them on a branch, merge through a pull request here, then run `npm run publish` again; it updates the same Raycast pull request. Make sure it is still not a draft (step 6.5). Afterwards move the tag to the new submitted commit and keep the pre-release:
 
 ```bash
 git tag -fa v<version> -m "v<version>" <new submitted commit>
