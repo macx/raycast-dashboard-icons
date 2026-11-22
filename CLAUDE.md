@@ -8,10 +8,21 @@ This file is for anyone working on the project with Claude Code: contributors an
 
 Talk to the user in English, including inside the project skills and agents, unless the user's own instructions (for example their personal `~/.claude/CLAUDE.md`) set another language; then use that one. Files, code, comments, commit messages, pull requests and docs are always in English.
 
+## Repository layout
+
+Only `extension/` ships to the Raycast Store; `npm run publish` publishes that folder alone. Raycast's review rules forbid tests, test tooling, agent files (`CLAUDE.md`, `.claude/`), `.mcp.json`, a per-extension `LICENSE`, dev scripts and contributor docs in the Store copy, so they live at the repository root.
+
+- `extension/`: the extension as Store users get it: `src/`, `assets/`, `metadata/` (Store screenshots), `package.json` (manifest, no `version` field), `package-lock.json`, `CHANGELOG.md`, `README.md` (the Store page: user-facing only, no images from `assets/` or `metadata/`), ESLint, Prettier and TypeScript config.
+- Root: `CLAUDE.md`, `.claude/`, `.mcp.json`, `.github/`, `LICENSE`, `NOTICE`, `README.md` (for GitHub and contributors), `scripts/`, `test/`, `vitest.config.mts` and a private `package.json` with the dev tooling, the project version and scripts that delegate to `extension/`.
+
+Never add development material to `extension/`. Add runtime dependencies with `npm install <package> --prefix extension`; test-only dependencies go into the root `package.json`.
+
 ## Commands
 
+Run everything from the repository root:
+
 ```bash
-npm install
+npm install          # root dev tooling; postinstall runs npm ci in extension/
 npm run dev          # Raycast development mode with hot reload (needs the Raycast app)
 npm run lint         # ray lint: manifest, icons, metadata, ESLint, Prettier
 npm run build        # distribution build; also generates raycast-env.d.ts
@@ -25,15 +36,15 @@ Run `npm run check` before you consider a change done. CI (`.github/workflows/ci
 
 ## Architecture
 
-- `src/search-icons.tsx`: the only command. Grid search with a source dropdown; debounced (400 ms), minimum 2 characters.
-- `src/components/IconDetail.tsx`: list of all variants × formats with preview, metadata, author and the "About This Icon" text.
-- `src/components/FileActions.tsx`, `src/lib/actions.ts`: copy file, save file, copy URL, copy SVG code. Only these touch `@raycast/api` side effects.
-- `src/lib/mcp.ts`: `DashboardIconsClient` (official `@modelcontextprotocol/sdk`, Streamable HTTP). Parses tool results defensively; never trust their shape.
-- `src/lib/icons.ts`: pure helpers: grouping, ordering, file names, labels, About text, author links.
-- `src/lib/files.ts`, `src/lib/image-size.ts`: downloads, unique save paths, intrinsic image size for previews.
-- `src/lib/rate-limit.ts`: local request budget (25 tool calls per minute).
+- `extension/src/search-icons.tsx`: the only command. Grid search with a source dropdown; debounced (400 ms), minimum 2 characters.
+- `extension/src/components/IconDetail.tsx`: list of all variants × formats with preview, metadata, author and the "About This Icon" text.
+- `extension/src/components/FileActions.tsx`, `extension/src/lib/actions.ts`: copy file, save file, copy URL, copy SVG code. Only these touch `@raycast/api` side effects.
+- `extension/src/lib/mcp.ts`: `DashboardIconsClient` (official `@modelcontextprotocol/sdk`, Streamable HTTP). Parses tool results defensively; never trust their shape.
+- `extension/src/lib/icons.ts`: pure helpers: grouping, ordering, file names, labels, About text, author links.
+- `extension/src/lib/files.ts`, `extension/src/lib/image-size.ts`: downloads, unique save paths, intrinsic image size for previews.
+- `extension/src/lib/rate-limit.ts`: local request budget (25 tool calls per minute).
 
-Keep `src/lib/*` free of `@raycast/api` imports so it stays unit-testable with Vitest.
+Keep `extension/src/lib/*` free of `@raycast/api` imports so it stays unit-testable with Vitest.
 
 ## The Dashboard Icons MCP server
 
@@ -50,7 +61,7 @@ Keep `src/lib/*` free of `@raycast/api` imports so it stays unit-testable with V
 ## Raycast conventions
 
 - Follow the official guides: https://developers.raycast.com (full text for agents: https://developers.raycast.com/llms-full.txt). This project targets `@raycast/api` 2.x. Some docs pages still describe Raycast 1.x UI; verify against the installed app when in doubt.
-- Store rules that matter here: Title Case action titles, icons on all actions or none, US English, no external analytics, no custom localization, `CHANGELOG.md` entries with `{PR_MERGE_DATE}`, screenshots in `metadata/` (2000 × 1250 PNG, at most six, one theme and background).
+- Store rules that matter here: Title Case action titles, icons on all actions or none, US English, no external analytics, no custom localization, `extension/CHANGELOG.md` entries with `{PR_MERGE_DATE}`, failed loads shown as an error view with a Retry action (never as an empty result), no command `subtitle` that repeats the extension title, screenshots in `extension/metadata/` (2000 × 1250 PNG, at most six, one theme and background).
 - Use `Keyboard.Shortcut.Common.*` where one fits; `ray lint` warns otherwise.
 - `platforms` is `["macOS"]`. Only add Windows after testing on Windows.
 
@@ -59,7 +70,7 @@ Keep `src/lib/*` free of `@raycast/api` imports so it stays unit-testable with V
 - TypeScript strict, Prettier (120 columns), the Raycast ESLint config. Match the surrounding style.
 - Add or update tests with every behavior change. Pure logic gets unit tests; MCP behavior gets tests against the in-memory server in `test/mcp.test.ts`; real-server assumptions go into `test/live.test.ts`.
 - Comments and docs in English.
-- Attribution: the extension is unofficial. Keep the disclaimer in `README.md` and the credits in `NOTICE` correct when adding assets.
+- Attribution: the extension is unofficial. Keep the disclaimer and credits in `extension/README.md` (shipped to the Store) and in `NOTICE` (repository) correct when adding assets.
 
 ## Contributing
 
@@ -67,11 +78,11 @@ Keep `src/lib/*` free of `@raycast/api` imports so it stays unit-testable with V
 
 ## Versioning
 
-Semantic Versioning. The version is `version` in `package.json` and the title of each `CHANGELOG.md` entry (`## [1.0.1] - {PR_MERGE_DATE}`). Raycast's publishing docs do not use a version field; the Store shows the changelog as version history. Tags (`v1.0.1`) and GitHub releases are created after Raycast merges the Store pull request.
+Semantic Versioning. The version is `version` in the root `package.json` and the title of each `extension/CHANGELOG.md` entry (`## [1.0.1] - {PR_MERGE_DATE}`). The extension manifest has no `version` field: Raycast versions extensions in the Store and its review flags one; the Store shows the changelog as version history. Tags (`v1.0.1`) and GitHub releases are created after Raycast merges the Store pull request.
 
 ## Releasing (maintainer only)
 
-Releases publish to the Raycast Store under the maintainer's account. Use the `/release` skill. It runs `scripts/check-owner.sh` first, which only passes for admins of `macx/raycast-dashboard-icons` on a clean, synced `main`. If the check fails, stop and tell the user; never bypass, edit or skip it, and never run `npm run publish` or `npm run release` outside that skill. Contributors who ask for a release should open a pull request instead.
+Releases publish to the Raycast Store under the maintainer's account. Use the `/release` skill. It runs `scripts/check-owner.sh` first, which only passes for admins of `macx/raycast-dashboard-icons` on a clean, synced `main`. If the check fails, stop and tell the user; never bypass, edit or skip it, and never run `npm run publish` outside that skill. Contributors who ask for a release should open a pull request instead.
 
 ## Project skills and agents
 

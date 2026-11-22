@@ -11,8 +11,8 @@ import {
   parseSearchResults,
   RateLimitError,
   toolPayload,
-} from "../src/lib/mcp";
-import { RequestBudget } from "../src/lib/rate-limit";
+} from "../extension/src/lib/mcp";
+import { RequestBudget } from "../extension/src/lib/rate-limit";
 import { iconNotFound, iconPortabase, searchEmpty, searchGithub, searchNtfy } from "./fixtures";
 
 type Call = { name: string; arguments: Record<string, unknown> };

@@ -20,23 +20,23 @@ Skip if the extension is not in the Store yet (`gh api repos/raycast/extensions/
 
 ## 3. Choose the version
 
-1. Read the current version from `package.json` and the last tag (`git describe --tags --abbrev=0`, may not exist before the first release).
+1. Read the current version from the root `package.json` (the extension manifest has no version; Raycast versions extensions in the Store) and the last tag (`git describe --tags --abbrev=0`, may not exist before the first release).
 2. Summarize the changes since that tag (`git log <tag>..HEAD --oneline`, or all commits before the first release).
 3. Propose a Semantic Versioning bump with a reason: patch for bug fixes only, minor for new features, major for changes that break existing behavior (removed actions, changed defaults, renamed command). Ask the user to confirm or pick another.
 
 ## 4. Prepare the release pull request
 
-Skip this step if `package.json` already has the chosen version and the top `CHANGELOG.md` entry is `## [<version>] - {PR_MERGE_DATE}` with matching notes (for example the first release, `1.0.0`).
+Skip this step if the root `package.json` already has the chosen version and the top `extension/CHANGELOG.md` entry is `## [<version>] - {PR_MERGE_DATE}` with matching notes (for example the first release, `1.0.0`).
 
 1. `git switch -c release/v<version>`
-2. `npm version <version> --no-git-tag-version`
-3. Add a `CHANGELOG.md` entry at the top: `## [<version>] - {PR_MERGE_DATE}` followed by user-facing bullet points. Show it to the user and adjust until they agree.
+2. `npm version <version> --no-git-tag-version` (at the repository root)
+3. Add an `extension/CHANGELOG.md` entry at the top: `## [<version>] - {PR_MERGE_DATE}` followed by user-facing bullet points. Show it to the user and adjust until they agree.
 4. Run `npm run check`.
 5. Commit (`Release v<version>`), push, open a pull request, wait for CI, and ask the maintainer to merge it. Continue after the merge, then `git switch main && git pull --rebase --autostash`.
 
 ## 5. Screenshots
 
-If the UI changed since the last release, ask whether `metadata/` needs new screenshots (see the `screenshots` skill). Do not block if the user says no.
+If the UI changed since the last release, ask whether `extension/metadata/` needs new screenshots (see the `screenshots` skill). Do not block if the user says no.
 
 ## 6. Publish
 
@@ -44,8 +44,9 @@ If the UI changed since the last release, ask whether `metadata/` needs new scre
 2. Run `npm run check`. Every step must pass, including the live tests.
 3. Summarize what will be published (version, changelog entry, commit, screenshot count) and ask for an explicit go. Publishing opens or updates a public pull request in `raycast/extensions`.
 4. Bring the fork up to date with Raycast first: `gh repo sync macx/raycast-extensions -b main`, then confirm `gh api repos/macx/raycast-extensions/compare/main...raycast:extensions:main --jq .status` prints `identical`. `npm run publish` cannot sync the fork itself (Raycast's OAuth app lacks the `workflow` scope and fails with "could not get the latest changes"). Do this before every `npm run publish`, including the re-publishes in step 8.
-5. Run `npm run publish`. It may ask the user to sign in with GitHub in the browser; tell them so. Report the pull request URL it prints.
+5. Run `npm run publish` (it publishes only the `extension/` folder). It may ask the user to sign in with GitHub in the browser; tell them so. Report the pull request URL it prints.
 6. `npm run publish` can open the Raycast pull request as a draft, and Raycast does not review drafts (the bot marks them stale and closes them). Check with `gh pr view <number> -R raycast/extensions --json isDraft`; if it is a draft, run `gh pr ready <number> -R raycast/extensions` and confirm `isDraft` is now `false`. Do the same after every later `npm run publish` in step 8.
+7. Check what the Store pull request contains: `gh pr view <number> -R raycast/extensions --json files --jq '.files[].path'`. Every path must be inside `extensions/dashboard-icons/` and none may be a test, `CLAUDE.md`, `.mcp.json`, `LICENSE` or script. If something from the repository root slipped in, stop and tell the user.
 
 ## 7. Pre-release
 
@@ -61,7 +62,7 @@ The notes start with a short "In Raycast Store review" note linking the Raycast 
 
 ## 8. During Raycast's review
 
-Fixes requested by Raycast belong to the same version. Make them on a branch, merge through a pull request here, then sync the fork (step 6.4) and run `npm run publish` again; it updates the same Raycast pull request. Make sure it is still not a draft (step 6.6). Afterwards move the tag to the new submitted commit and keep the pre-release:
+Fixes requested by Raycast belong to the same version. Make them on a branch, merge through a pull request here, then sync the fork (step 6.4) and run `npm run publish` again; it updates the same Raycast pull request. Make sure it is still not a draft and contains only extension files (steps 6.6 and 6.7). Afterwards move the tag to the new submitted commit and keep the pre-release:
 
 ```bash
 git tag -fa v<version> -m "v<version>" <new submitted commit>

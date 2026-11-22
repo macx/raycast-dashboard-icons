@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/extension-icon.png" width="256" height="256" alt="Dashboard Icons extension icon">
+  <img src="extension/assets/extension-icon.png" width="256" height="256" alt="Dashboard Icons extension icon">
 </p>
 
 <h1 align="center">Dashboard Icons for Raycast</h1>
@@ -14,25 +14,27 @@
 ## Screenshots
 
 <p align="center">
-  <img src="metadata/dashboard-icons-1-search.png" width="720" alt="Search results for “home” in Raycast">
+  <img src="extension/metadata/dashboard-icons-1-search.png" width="720" alt="Search results for “home” in Raycast">
 </p>
 
 <table>
   <tr>
     <td width="33%" align="center">
-      <a href="metadata/dashboard-icons-2-variants.png"><img src="metadata/dashboard-icons-2-variants.png" alt="Base, Light and Dark variants of Proxmox with preview, author and update date"></a><br>
+      <a href="extension/metadata/dashboard-icons-2-variants.png"><img src="extension/metadata/dashboard-icons-2-variants.png" alt="Base, Light and Dark variants of Proxmox with preview, author and update date"></a><br>
       <sub>Every variant and format with preview</sub>
     </td>
     <td width="33%" align="center">
-      <a href="metadata/dashboard-icons-3-actions.png"><img src="metadata/dashboard-icons-3-actions.png" alt="Actions to copy or save the file, copy its URL, or open the icon page"></a><br>
+      <a href="extension/metadata/dashboard-icons-3-actions.png"><img src="extension/metadata/dashboard-icons-3-actions.png" alt="Actions to copy or save the file, copy its URL, or open the icon page"></a><br>
       <sub>Copy, save, or open in the browser</sub>
     </td>
     <td width="33%" align="center">
-      <a href="metadata/dashboard-icons-4-sources.png"><img src="metadata/dashboard-icons-4-sources.png" alt="Search for “git” with the source filter open"></a><br>
+      <a href="extension/metadata/dashboard-icons-4-sources.png"><img src="extension/metadata/dashboard-icons-4-sources.png" alt="Search for “git” with the source filter open"></a><br>
       <sub>Filter by icon source</sub>
     </td>
   </tr>
 </table>
+
+This repository is the source of the extension. Only the [`extension/`](extension) folder is published to the Raycast Store; its [README](extension/README.md) is the Store page. Tests, Claude Code setup and release tooling stay here at the root.
 
 ## Features
 
@@ -82,11 +84,11 @@ Requirements: [Raycast](https://raycast.com) and Node.js 22.22.2 or later.
 ```bash
 git clone https://github.com/macx/raycast-dashboard-icons.git
 cd raycast-dashboard-icons
-npm install
+npm install   # also installs extension/ (postinstall)
 npm run dev
 ```
 
-`npm run dev` adds the extension to Raycast in development mode with hot reloading. Stop it with `⌃C`; the extension stays in Raycast.
+Run all commands from the repository root. `npm run dev` adds the extension to Raycast in development mode with hot reloading. Stop it with `⌃C`; the extension stays in Raycast.
 
 | Command | Purpose |
 | --- | --- |
@@ -96,6 +98,19 @@ npm run dev
 | `npm run lint` | Raycast lint (manifest, icons, ESLint, Prettier) |
 | `npm run build` | Distribution build, also generates `raycast-env.d.ts` |
 | `npm run typecheck` | TypeScript check (run `npm run build` once first) |
+| `npm run check` | All of the above, including the live tests |
+
+### Repository layout
+
+| Path | Contents |
+| --- | --- |
+| `extension/` | What ships to the Store: `src/`, `assets/`, `metadata/` (Store screenshots), manifest, lockfile, `CHANGELOG.md` and the Store `README.md` |
+| `test/`, `vitest.config.mts` | Unit and live tests; they import the code from `extension/src` |
+| `.claude/`, `CLAUDE.md`, `.mcp.json` | Claude Code setup |
+| `scripts/`, `.github/` | Release guardrail and CI |
+| `package.json` | Dev tooling, the project version, and scripts that run in `extension/` |
+
+Raycast's review asks that the Store copy contains only what users run, so nothing from the root goes into `extension/`. Runtime dependencies are added with `npm install <package> --prefix extension`.
 
 ### Working with Claude Code
 
@@ -105,7 +120,7 @@ The repository ships a Claude Code setup: [CLAUDE.md](CLAUDE.md) explains the pr
 | --- | --- | --- |
 | `/validate` | Everyone | Runs all checks (lint, build, typecheck, unit and live tests) and reviews the Raycast Store checklist |
 | `/icon-research` | Everyone | Looks up real icon data (formats, variants, authors, licenses) through the MCP server |
-| `/screenshots` | Everyone | Explains how to take Store screenshots with Raycast 2 and files them into `metadata/` |
+| `/screenshots` | Everyone | Explains how to take Store screenshots with Raycast 2 and files them into `extension/metadata/` |
 | `/pull-contributions` | Maintainer | Brings changes others made to the Store copy in `raycast/extensions` into this repository through a pull request |
 | `/release` | Maintainer only | Verifies ownership, runs all checks, and publishes to the Raycast Store after confirmation |
 
@@ -123,14 +138,14 @@ Issues and pull requests are welcome **in this repository**, which is the source
 
 1. Fork the repository and create a branch.
 2. Make your change and add or update tests.
-3. Run `npm run lint`, `npm run build`, and `npm test`.
+3. Run `npm run check` (or at least `npm run lint`, `npm run build`, `npm run typecheck` and `npm test`).
 4. Open a pull request against `main`. CI runs the same checks and must pass; `main` accepts changes only through pull requests.
 
 Releases to the Raycast Store are published by the maintainer with `npm run publish`, which opens a pull request in [raycast/extensions](https://github.com/raycast/extensions).
 
 ## Releasing
 
-Versions follow [Semantic Versioning](https://semver.org): patch (`1.0.1`) for bug fixes, minor (`1.1.0`) for new features, major (`2.0.0`) for changes that break existing behavior. The version lives in `package.json` and is the title of each `CHANGELOG.md` entry, which the Store shows as the version history.
+Versions follow [Semantic Versioning](https://semver.org): patch (`1.0.1`) for bug fixes, minor (`1.1.0`) for new features, major (`2.0.0`) for changes that break existing behavior. The version lives in the root `package.json` (the extension manifest has none; Raycast versions extensions in the Store) and is the title of each `extension/CHANGELOG.md` entry, which the Store shows as the version history.
 
 A release is a pull request to [raycast/extensions](https://github.com/raycast/extensions) that Raycast reviews and merges; after the merge the update is published to the Store automatically. With Claude Code, the maintainer runs `/release`, which walks through these steps:
 
@@ -148,14 +163,8 @@ A release is a pull request to [raycast/extensions](https://github.com/raycast/e
    ```
 
    Raycast replaces `{PR_MERGE_DATE}` with the merge date.
-3. **Update screenshots if the UI changed.** Run `npm run dev`, open the command, and use Raycast's built-in **Capture Window** command (assign a hotkey in Raycast Settings → Extensions) with **Save to Metadata**. Screenshots go to `metadata/`: PNG, 2000 × 1250 px, at most six, one theme and background, no personal data.
-4. **Release** from an up-to-date, clean `main`:
-
-   ```bash
-   npm run release
-   ```
-
-   This runs all checks (`npm run check`: lint, build, typecheck, unit and live tests) and then `npm run publish`, which asks you to sign in with GitHub and opens or updates the pull request in `raycast/extensions`.
+3. **Update screenshots if the UI changed.** Run `npm run dev`, open the command, and use Raycast's built-in **Capture Window** command (assign a hotkey in Raycast Settings → Extensions) with **Save to Metadata**. Screenshots go to `extension/metadata/`: PNG, 2000 × 1250 px, at most six, one theme and background, no personal data.
+4. **Release** from an up-to-date, clean `main`: run `npm run check`, sync the fork (`gh repo sync <you>/raycast-extensions -b main`), then `npm run publish`. It publishes only `extension/`, asks you to sign in with GitHub, and opens or updates the pull request in `raycast/extensions`. Make sure that pull request is not a draft.
 5. **Mark progress:** tag the submitted commit `vX.Y.Z` and create a GitHub **pre-release** titled "vX.Y.Z (in Store review)" that links the Raycast pull request.
 6. **Follow the review.** Fixes during the review go into the same version: merge them here, then run `npm run publish` again to update the same pull request; the pre-release tag moves to the new submitted commit.
 7. **After Raycast merges**, turn the pre-release into a regular release with the changelog entry and the Store link. If the review required fixes, the tag first moves to the last submitted commit.

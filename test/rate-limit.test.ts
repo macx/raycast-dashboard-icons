@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { RequestBudget } from "../src/lib/rate-limit";
+import { RequestBudget } from "../extension/src/lib/rate-limit";
 
 describe("RequestBudget", () => {
   it("allows up to the limit within the window and frees slots as they expire", () => {

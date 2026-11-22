@@ -1,7 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Node 22",
-  "include": ["src/**/*", "test/**/*", "raycast-env.d.ts"],
+  "include": ["test/**/*", "vitest.config.mts", "extension/raycast-env.d.ts"],
   "compilerOptions": {
     "lib": ["ES2023", "DOM"],
     "module": "commonjs",
@@ -12,6 +11,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "noEmit": true
   }
 }
