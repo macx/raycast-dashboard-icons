@@ -27,8 +27,8 @@ case "$origin" in
   *) fail "git remote 'origin' is '$origin', expected $REPO (releases are made from the main repository, not a fork)." ;;
 esac
 
-manifest_author="$(node -p "require('./package.json').author")"
-[ "$manifest_author" = "$AUTHOR" ] || fail "package.json author is '$manifest_author', expected '$AUTHOR'."
+manifest_author="$(node -p "require('./extension/package.json').author")"
+[ "$manifest_author" = "$AUTHOR" ] || fail "extension/package.json author is '$manifest_author', expected '$AUTHOR'."
 
 branch="$(git rev-parse --abbrev-ref HEAD)"
 [ "$branch" = "main" ] || fail "current branch is '$branch', releases are made from 'main'."

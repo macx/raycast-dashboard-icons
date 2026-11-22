@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from "vitest";
-import { groupIconFiles } from "../src/lib/icons";
-import { DashboardIconsClient } from "../src/lib/mcp";
+import { groupIconFiles } from "../extension/src/lib/icons";
+import { DashboardIconsClient } from "../extension/src/lib/mcp";
 
 // Contract test against the real dashboardicons.com MCP server. Run with `npm run test:live`.
 const live = process.env.DASHBOARD_ICONS_LIVE === "1";

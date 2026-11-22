@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { previewMarkdown } from "../src/components/preview";
-import { fitInto, imageSize } from "../src/lib/image-size";
+import { previewMarkdown } from "../extension/src/components/preview";
+import { fitInto, imageSize } from "../extension/src/lib/image-size";
 
 // Real files from the Dashboard Icons CDN; reference sizes checked with `sips`.
 const image = (name: string) => new Uint8Array(readFileSync(join(__dirname, "images", name)));

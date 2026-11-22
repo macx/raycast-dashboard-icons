@@ -22,7 +22,7 @@ After the extension is published, anyone can open pull requests against its copy
 
 1. If the working tree still has uncommitted changes, set them aside so they do not mix with the contributions: `git stash push --include-untracked -m "before pull-contributions"`. Remember to restore them in step 5.
 2. `git switch -c chore/pull-store-contributions-$(date +%Y%m%d-%H%M)`
-3. `npm run pull-contributions`. It merges the Store-side changes into the current branch.
+3. `npm run pull-contributions` (runs in `extension/`). It merges the Store-side changes into the current branch.
    - If it reports conflicts, show them, propose resolutions, and resolve only with the user's agreement. Then commit the merge.
    - If nothing changed (no new commits on the branch, `git log main..HEAD` is empty), report that the repository is already in sync, switch back to `main`, delete the branch, and go to step 5.
 
@@ -30,7 +30,7 @@ After the extension is published, anyone can open pull requests against its copy
 
 1. Show what came in: `git log main..HEAD --oneline` and `git diff --stat main...HEAD`, plus the changed source files.
 2. Run `npm run check`. Fix failures only after discussing them with the user.
-3. Make sure the contributors' `CHANGELOG.md` entries and the `contributors` list in `package.json` survived the merge.
+3. Make sure the contributors' `extension/CHANGELOG.md` entries and the `contributors` list in `extension/package.json` survived the merge.
 4. Push the branch and open a pull request titled "Pull Store contributions" that lists the incoming commits and their authors. Ask the maintainer to review and merge it.
 
 ## 5. Restore local work

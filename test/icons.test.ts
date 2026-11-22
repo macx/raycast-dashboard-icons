@@ -10,9 +10,9 @@ import {
   orderedFormats,
   primaryFile,
   variantLabel,
-} from "../src/lib/icons";
-import { parseGetIcon } from "../src/lib/mcp";
-import { IconDetails } from "../src/lib/types";
+} from "../extension/src/lib/icons";
+import { parseGetIcon } from "../extension/src/lib/mcp";
+import { IconDetails } from "../extension/src/lib/types";
 import { iconNtfy, iconPngOnly, iconPortabase, iconSimpleIcons } from "./fixtures";
 
 function details(payload: unknown): IconDetails {

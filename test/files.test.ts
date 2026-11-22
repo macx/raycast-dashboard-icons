@@ -2,8 +2,8 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { downloadToCache, expandHome, saveToDirectory, uniquePath } from "../src/lib/files";
-import { IconFile } from "../src/lib/types";
+import { downloadToCache, expandHome, saveToDirectory, uniquePath } from "../extension/src/lib/files";
+import { IconFile } from "../extension/src/lib/types";
 
 const file: IconFile = {
   variant: "dark",

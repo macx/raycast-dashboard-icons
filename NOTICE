@@ -6,10 +6,10 @@ affiliated with, or endorsed by Homarr Labs or the Dashboard Icons project.
 
 Extension icon
 --------------
-assets/extension-icon.png and assets/extension-icon@dark.png are the
-Dashboard Icons logo, rendered to PNG with
-added padding from web/public/favicon.svg in
-https://github.com/homarr-labs/dashboard-icons.
+extension/assets/extension-icon.png and extension/assets/extension-icon@dark.png
+are the Dashboard Icons logo, rendered to PNG with added padding from
+web/public/favicon.svg in https://github.com/homarr-labs/dashboard-icons.
+The same credit is part of extension/README.md, which ships to the Store.
 
 Copyright (c) 2024 Bjorn Lammers, Meier Lukas, Thomas Camlong and Homarr Labs
 Licensed under the Apache License, Version 2.0:

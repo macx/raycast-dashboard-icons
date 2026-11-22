@@ -1,6 +1,6 @@
 ---
 name: screenshots
-description: Guide the user through taking Raycast Store screenshots of this extension with Raycast 2's Capture Window command and add them to metadata/ and the README. Use when screenshots are missing, outdated, or the user asks how to take them.
+description: Guide the user through taking Raycast Store screenshots of this extension with Raycast 2's Capture Window command and add them to extension/metadata/ and the repository README. Use when screenshots are missing, outdated, or the user asks how to take them.
 ---
 
 # Store screenshots
@@ -13,7 +13,7 @@ Screenshots cannot be taken reliably by Claude; the user takes them in Raycast, 
 2. Run `npm run dev`, open **Search Icons**, set up the view, press the hotkey, choose **Save to Metadata**.
 3. Use the same theme and background for all screenshots. A Retina display gives sharper results. No personal data in the window.
 
-If CleanShot X is installed, Raycast may hand the capture to CleanShot, and the file lands in CleanShot's folder (by default `~/Pictures/CleanShot X/`, named `Raycast <date>.png`) instead of `metadata/`.
+If CleanShot X is installed, Raycast may hand the capture to CleanShot, and the file lands in CleanShot's folder (by default `~/Pictures/CleanShot X/`, named `Raycast <date>.png`) instead of `extension/metadata/`.
 
 ## Recommended set
 
@@ -24,8 +24,8 @@ If CleanShot X is installed, Raycast may hand the capture to CleanShot, and the 
 
 ## What Claude does
 
-1. Find new captures: files in `metadata/`, or recent `Raycast *.png` files in the CleanShot folder. Ask before copying files from outside the repository.
+1. Find new captures: files in `extension/metadata/`, or recent `Raycast *.png` files in the CleanShot folder. Ask before copying files from outside the repository.
 2. Check each one is a 2000 × 1250 PNG (`sips -g pixelWidth -g pixelHeight <file>`) and look at it for personal data or other apps.
-3. Copy them into `metadata/` as `dashboard-icons-<n>-<subject>.png` in the order above, for example `dashboard-icons-1-search.png`, `dashboard-icons-2-variants.png`, `dashboard-icons-3-actions.png`, `dashboard-icons-4-sources.png`. The number keeps the Store order; the subject says what it shows. At most six.
-4. Keep the README gallery (section "Screenshots") in sync with the files.
+3. Copy them into `extension/metadata/` as `dashboard-icons-<n>-<subject>.png` in the order above, for example `dashboard-icons-1-search.png`, `dashboard-icons-2-variants.png`, `dashboard-icons-3-actions.png`, `dashboard-icons-4-sources.png`. The number keeps the Store order; the subject says what it shows. At most six.
+4. Keep the gallery in the repository `README.md` (section "Screenshots") in sync with the files. Do not add images to `extension/README.md`: it is the Store page, which shows the screenshots by itself.
 5. Run `npm run lint` (validates metadata) and commit.
