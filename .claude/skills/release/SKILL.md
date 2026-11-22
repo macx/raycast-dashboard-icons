@@ -69,6 +69,8 @@ git tag -fa v<version> -m "v<version>" <new submitted commit>
 git push --force origin v<version>
 ```
 
+Then answer every review finding the re-publish fixed (Raycast reviewers, Greptile, Copilot): reply briefly in its thread with what changed, and mark the thread resolved (GraphQL `addPullRequestReviewThreadReply` and `resolveReviewThread`). Never leave a fixed thread open, and never resolve one that is not fixed.
+
 Moving the tag is acceptable only while the release is a pre-release. Tell the user when you do it. If the force push is blocked by Claude Code's permission checks, do not work around it: give the user the two commands to run themselves with the `!` prefix.
 
 Batch small changes: unrelated improvements wait for the review result instead of being published into the open Raycast pull request one by one.
