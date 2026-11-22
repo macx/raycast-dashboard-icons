@@ -22,7 +22,6 @@
     "webp"
   ],
   "license": "MIT",
-  "version": "1.0.0",
   "platforms": [
     "macOS"
   ],
@@ -30,7 +29,6 @@
     {
       "name": "search-icons",
       "title": "Search Icons",
-      "subtitle": "Dashboard Icons",
       "description": "Search dashboardicons.com and copy or save an icon in any available format and variant.",
       "mode": "view",
       "arguments": [
