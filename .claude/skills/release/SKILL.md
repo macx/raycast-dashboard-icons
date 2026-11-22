@@ -43,8 +43,9 @@ If the UI changed since the last release, ask whether `metadata/` needs new scre
 1. Run `./scripts/check-owner.sh` again (now on the merged `main`).
 2. Run `npm run check`. Every step must pass, including the live tests.
 3. Summarize what will be published (version, changelog entry, commit, screenshot count) and ask for an explicit go. Publishing opens or updates a public pull request in `raycast/extensions`.
-4. Run `npm run publish`. It may ask the user to sign in with GitHub in the browser; tell them so. Report the pull request URL it prints.
-5. `npm run publish` can open the Raycast pull request as a draft, and Raycast does not review drafts (the bot marks them stale and closes them). Check with `gh pr view <number> -R raycast/extensions --json isDraft`; if it is a draft, run `gh pr ready <number> -R raycast/extensions` and confirm `isDraft` is now `false`. Do the same after every later `npm run publish` in step 8.
+4. Bring the fork up to date with Raycast first: `gh repo sync macx/raycast-extensions -b main`, then confirm `gh api repos/macx/raycast-extensions/compare/main...raycast:extensions:main --jq .status` prints `identical`. `npm run publish` cannot sync the fork itself (Raycast's OAuth app lacks the `workflow` scope and fails with "could not get the latest changes"). Do this before every `npm run publish`, including the re-publishes in step 8.
+5. Run `npm run publish`. It may ask the user to sign in with GitHub in the browser; tell them so. Report the pull request URL it prints.
+6. `npm run publish` can open the Raycast pull request as a draft, and Raycast does not review drafts (the bot marks them stale and closes them). Check with `gh pr view <number> -R raycast/extensions --json isDraft`; if it is a draft, run `gh pr ready <number> -R raycast/extensions` and confirm `isDraft` is now `false`. Do the same after every later `npm run publish` in step 8.
 
 ## 7. Pre-release
 
@@ -60,14 +61,14 @@ The notes start with a short "In Raycast Store review" note linking the Raycast 
 
 ## 8. During Raycast's review
 
-Fixes requested by Raycast belong to the same version. Make them on a branch, merge through a pull request here, then run `npm run publish` again; it updates the same Raycast pull request. Make sure it is still not a draft (step 6.5). Afterwards move the tag to the new submitted commit and keep the pre-release:
+Fixes requested by Raycast belong to the same version. Make them on a branch, merge through a pull request here, then sync the fork (step 6.4) and run `npm run publish` again; it updates the same Raycast pull request. Make sure it is still not a draft (step 6.6). Afterwards move the tag to the new submitted commit and keep the pre-release:
 
 ```bash
 git tag -fa v<version> -m "v<version>" <new submitted commit>
 git push --force origin v<version>
 ```
 
-Moving the tag is acceptable only while the release is a pre-release. Tell the user when you do it.
+Moving the tag is acceptable only while the release is a pre-release. Tell the user when you do it. If the force push is blocked by Claude Code's permission checks, do not work around it: give the user the two commands to run themselves with the `!` prefix.
 
 Batch small changes: unrelated improvements wait for the review result instead of being published into the open Raycast pull request one by one.
 
